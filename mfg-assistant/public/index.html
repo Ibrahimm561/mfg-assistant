@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plant floor Q&amp;A</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏭</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #edeff1; --surface: #ffffff; --ink: #16202b; --muted: #5b6877; --line: #d5dae0;
+    --accent: #1d4e89; --accent-ink: #ffffff; --ok: #1e7b4f; --warn: #a4660b; --warn-bg: #fbf1de; --err: #b3261e;
+    --bar: #1d4e89; --bar-bg: #e3e8ee; --code-bg: #f3f5f7;
+    --sans: "Public Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #11161c; --surface: #19212a; --ink: #e8edf2; --muted: #93a1b0; --line: #2b3745;
+      --accent: #6aa5ee; --accent-ink: #0c1722; --ok: #5cc596; --warn: #e3a64a; --warn-bg: #2b2212; --err: #f08a82;
+      --bar: #6aa5ee; --bar-bg: #26323f; --code-bg: #121920;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 var(--sans); }
+  main { max-width: 920px; margin: 0 auto; padding: 24px 16px 64px; }
+  header h1 { font-size: 1.5rem; margin: 0 0 4px; letter-spacing: -0.01em; }
+  header p { margin: 0; color: var(--muted); max-width: 62ch; }
+  .tabs { display: flex; gap: 4px; margin: 20px 0 16px; border-bottom: 1px solid var(--line); }
+  .tab { appearance: none; background: none; border: 0; border-bottom: 3px solid transparent; padding: 10px 14px; font: inherit; font-weight: 500; color: var(--muted); cursor: pointer; }
+  .tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+  .tab:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .ask { display: flex; gap: 8px; }
+  .ask input { flex: 1; min-width: 0; font: inherit; padding: 12px 14px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--ink); }
+  .btn { appearance: none; border: 0; border-radius: 6px; padding: 12px 20px; font: inherit; font-weight: 700; background: var(--accent); color: var(--accent-ink); cursor: pointer; }
+  .btn[disabled] { opacity: .55; cursor: progress; }
+  .examples { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; padding: 0; list-style: none; }
+  .examples button { font: inherit; font-size: .875rem; padding: 6px 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--ink); cursor: pointer; }
+  .examples button:hover { border-color: var(--accent); }
+  .hint { color: var(--muted); font-size: .875rem; margin: 10px 0 0; }
+
+  .ticket { margin-top: 20px; background: var(--surface); border: 1px solid var(--line); border-left: 6px solid var(--ok); border-radius: 6px; padding: 18px 20px; }
+  .ticket.refused { border-left-color: var(--warn); }
+  .ticket.error { border-left-color: var(--err); }
+  .ticket .q { margin: 0 0 10px; color: var(--muted); }
+  .big { font-size: clamp(2.2rem, 7vw, 3.4rem); font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; margin: 4px 0 2px; }
+  .big small { font-size: 1rem; font-weight: 500; color: var(--muted); letter-spacing: 0; margin-left: 8px; }
+  .interp { margin: 8px 0 0; }
+  .status { font-weight: 700; margin: 0 0 4px; }
+  .refused .status { color: var(--warn); } .error .status { color: var(--err); }
+  .notes { margin: 14px 0 0; padding: 10px 12px; background: var(--warn-bg); border-radius: 4px; font-size: .875rem; color: var(--ink); }
+  .notes p { margin: 2px 0; }
+  .bars { margin: 12px 0 0; display: grid; gap: 6px; }
+  .bar-row { display: grid; grid-template-columns: minmax(80px, 200px) 1fr minmax(70px, auto); gap: 10px; align-items: center; font-size: .9375rem; }
+  .bar-row .lab { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bar-row .track { background: var(--bar-bg); height: 14px; border-radius: 3px; overflow: hidden; }
+  .bar-row .fill { background: var(--bar); height: 100%; }
+  .bar-row .val { text-align: right; font-variant-numeric: tabular-nums; font-weight: 500; }
+  .tablewrap { overflow-x: auto; margin-top: 12px; }
+  table { border-collapse: collapse; width: 100%; font-size: .9375rem; }
+  th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+  details { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 10px; }
+  summary { cursor: pointer; font-weight: 500; }
+  pre { margin: 10px 0 0; padding: 12px; background: var(--code-bg); border-radius: 4px; overflow-x: auto; font: .8125rem/1.5 var(--mono); white-space: pre-wrap; word-break: break-word; }
+  .meta { margin: 14px 0 0; color: var(--muted); font-size: .8125rem; }
+  .fb { margin-top: 10px; display: flex; gap: 8px; align-items: center; font-size: .875rem; color: var(--muted); }
+  .fb button { font: inherit; padding: 4px 10px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); color: var(--ink); cursor: pointer; }
+  .loading { margin-top: 20px; color: var(--muted); }
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; vertical-align: -2px; margin-right: 8px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }
+
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+  .kpi { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; }
+  .kpi b { display: block; font-size: 1.75rem; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+  .kpi span { color: var(--muted); font-size: .875rem; }
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px 18px; margin-top: 12px; }
+  .panel h2 { font-size: 1rem; margin: 0 0 8px; }
+  .grid2 { display: grid; grid-template-columns: 1fr; gap: 0 12px; }
+  @media (min-width: 760px) { .grid2 { grid-template-columns: 1fr 1fr; } }
+  [hidden] { display: none !important; }
+  footer { margin-top: 32px; color: var(--muted); font-size: .8125rem; max-width: 70ch; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Plant floor Q&amp;A</h1>
+    <p>Ask a production question in English, Urdu or Roman Urdu. You get the number, and the exact query behind it so you can check it.</p>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" id="tab-ask" aria-selected="true" aria-controls="view-ask">Ask a question</button>
+    <button class="tab" role="tab" id="tab-ov" aria-selected="false" aria-controls="view-ov">Year overview</button>
+  </div>
+
+  <section id="view-ask" role="tabpanel" aria-labelledby="tab-ask">
+    <div class="ask">
+      <input id="q" type="text" maxlength="300" autocomplete="off" aria-label="Your production question"
+             placeholder="e.g. How many cases did line P1000-L3 make in June?">
+      <button class="btn" id="go">Ask</button>
+    </div>
+    <ul class="examples" id="examples"></ul>
+    <p class="hint">Data: 2018, shift A, anonymised. Brands appear as BRAND-A to BRAND-G. Read-only: nothing here can change any record.</p>
+    <div id="result" aria-live="polite"></div>
+  </section>
+
+  <section id="view-ov" role="tabpanel" aria-labelledby="tab-ov" hidden>
+    <div id="ov-body" class="loading"><span class="spinner"></span>Loading overview</div>
+  </section>
+
+  <footer>Answers are produced by a language model that writes a database query; the app runs the query and displays the numbers. Check the query on anything that matters.</footer>
+</main>
+
+<script>
+const EXAMPLES = [
+  "How many cases did we produce in March?",
+  "Top 5 products by cases produced",
+  "Break down total downtime hours by cause",
+  "Which 3 lines had the most downtime hours?",
+  "Show total cases by plant",
+  "مارچ میں پلانٹ 1000 نے کتنے کیسز بنائے؟",
+  "What was the scrap rate on line P1000-L2?"
+];
+const $ = (id) => document.getElementById(id);
+const nf = new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 });
+const isNum = (v) => typeof v === "number" && isFinite(v);
+function el(tag, props = {}, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) {
+    if (k === "class") e.className = v; else if (k === "text") e.textContent = v; else e.setAttribute(k, v);
+  }
+  kids.flat().forEach((c) => c != null && e.append(c.nodeType ? c : document.createTextNode(c)));
+  return e;
+}
+const pretty = (name) => String(name).replace(/_/g, " ");
+
+// ---- examples -----------------------------------------------------------
+EXAMPLES.forEach((t) => {
+  const b = el("button", { type: "button", text: t });
+  b.onclick = () => { $("q").value = t; ask(); };
+  $("examples").append(el("li", {}, b));
+});
+
+// ---- tabs ----------------------------------------------------------------
+function showTab(which) {
+  const ask = which === "ask";
+  $("tab-ask").setAttribute("aria-selected", ask); $("tab-ov").setAttribute("aria-selected", !ask);
+  $("view-ask").hidden = !ask; $("view-ov").hidden = ask;
+  if (!ask && !showTab.loaded) { loadOverview(); showTab.loaded = true; }
+}
+$("tab-ask").onclick = () => showTab("ask"); $("tab-ov").onclick = () => showTab("ov");
+
+// ---- rendering helpers ----------------------------------------------------
+function bars(columns, rows) {
+  const vi = columns.length - 1;
+  const max = Math.max(...rows.map((r) => (isNum(r[vi]) ? r[vi] : 0)), 1);
+  const wrap = el("div", { class: "bars", role: "img", "aria-label": "Bar chart of " + pretty(columns[vi]) + " by " + pretty(columns[0]) });
+  rows.forEach((r) => wrap.append(el("div", { class: "bar-row" },
+    el("span", { class: "lab", title: String(r[0]), text: String(r[0]) }),
+    el("span", { class: "track" }, el("span", { class: "fill", style: `display:block;width:${Math.max(0, (r[vi] || 0) / max * 100)}%` })),
+    el("span", { class: "val", text: isNum(r[vi]) ? nf.format(r[vi]) : "-" }))));
+  return wrap;
+}
+function table(columns, rows) {
+  const numCol = columns.map((_, i) => rows.length && rows.every((r) => r[i] == null || isNum(r[i])));
+  const thead = el("thead", {}, el("tr", {}, columns.map((c, i) => el("th", { class: numCol[i] ? "n" : "", text: pretty(c) }))));
+  const tbody = el("tbody", {}, rows.map((r) => el("tr", {}, r.map((v, i) =>
+    el("td", { class: numCol[i] ? "n" : "", text: v == null ? "-" : isNum(v) ? nf.format(v) : String(v) })))));
+  return el("div", { class: "tablewrap" }, el("table", {}, thead, tbody));
+}
+function usageLine(u, cached) {
+  if (cached) return "Served from the answer cache: no model call, no cost.";
+  return `Took ${(u.latency_ms / 1000).toFixed(1)} s with ${u.model}. ${nf.format(u.prompt_tokens)} tokens in, ${nf.format(u.completion_tokens)} out, about $${u.cost_usd.toFixed(5)}.`;
+}
+
+// ---- ask -------------------------------------------------------------------
+async function ask() {
+  const q = $("q").value.trim();
+  if (!q) { $("q").focus(); return; }
+  $("go").disabled = true;
+  $("result").replaceChildren(el("div", { class: "loading" }, el("span", { class: "spinner" }), "Writing the query and running it"));
+  let r;
+  try {
+    const res = await fetch("/api/ask", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question: q }) });
+    r = await res.json();
+    if (!r.status) r = { status: "error", reason: "Unexpected response from the server (HTTP " + res.status + ")." };
+  } catch (e) {
+    r = { status: "error", reason: "Could not reach the server. Check your connection and try again." };
+  }
+  $("go").disabled = false;
+  render(q, r);
+}
+function render(q, r) {
+  const t = el("article", { class: "ticket " + (r.status === "ok" ? "" : r.status) });
+  t.append(el("p", { class: "q", text: q }));
+  if (r.status !== "ok") {
+    t.append(el("p", { class: "status", text: r.status === "refused" ? "This can't be answered from the production data" : "Something went wrong" }));
+    t.append(el("p", { class: "interp", text: r.reason || "" }));
+    if (r.sql) t.append(el("details", {}, el("summary", { text: "Query that was rejected" }), el("pre", { text: r.sql })));
+    if (r.usage && r.usage.latency_ms) t.append(el("p", { class: "meta", text: usageLine(r.usage, r.cached) }));
+    $("result").replaceChildren(t); return;
+  }
+  const cols = r.columns, rows = r.rows;
+  const single = rows.length === 1 && cols.length === 1;
+  if (single && rows[0][0] == null) {
+    t.append(el("p", { class: "status", text: "No matching records" }));
+  } else if (single) {
+    t.append(el("p", { class: "big" }, isNum(rows[0][0]) ? nf.format(rows[0][0]) : String(rows[0][0]), el("small", { text: pretty(cols[0]) })));
+  } else if (r.chart === "bar" && rows.length >= 2 && isNum(rows[0][cols.length - 1])) {
+    t.append(bars(cols, rows));
+  } else {
+    t.append(table(cols, rows));
+  }
+  if (r.interpretation) t.append(el("p", { class: "interp", text: "What was calculated: " + r.interpretation }));
+  const notes = (r.notes || []);
+  if (notes.length) t.append(el("div", { class: "notes" }, notes.map((n) => el("p", { text: n }))));
+  const det = el("details", {}, el("summary", { text: "How this was calculated" }),
+    el("pre", { text: r.sql }),
+    rows.length > 1 || cols.length > 1 ? table(cols, rows) : "");
+  t.append(det);
+  t.append(el("p", { class: "meta", text: usageLine(r.usage, r.cached) + (r.repaired ? " The first query failed and was repaired once." : "") }));
+  const fb = el("div", { class: "fb" }, "Was this right?");
+  ["up", "down"].forEach((v) => {
+    const b = el("button", { type: "button", text: v === "up" ? "Yes" : "No" });
+    b.onclick = async () => {
+      fb.replaceChildren("Thanks, logged.");
+      fetch("/api/feedback", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question: q, sql: r.sql, verdict: v }) }).catch(() => {});
+    };
+    fb.append(b);
+  });
+  t.append(fb);
+  $("result").replaceChildren(t);
+}
+$("go").onclick = ask;
+$("q").addEventListener("keydown", (e) => { if (e.key === "Enter") ask(); });
+
+// ---- overview (no model call) -----------------------------------------------
+async function loadOverview() {
+  try {
+    const res = await fetch("/api/overview"); const o = await res.json();
+    const k = Object.fromEntries(o.kpis.columns.map((c, i) => [c, o.kpis.rows[0][i]]));
+    const kpi = (v, label) => el("div", { class: "kpi" }, el("b", { text: nf.format(v) }), el("span", { text: label }));
+    const panel = (title, d) => el("div", { class: "panel" }, el("h2", { text: title }), bars(["label", "value"], d.rows));
+    $("ov-body").className = "";
+    $("ov-body").replaceChildren(
+      el("div", { class: "kpis" }, kpi(k.cases, "cases produced in 2018"), kpi(k.records, "production records"),
+        kpi(k.loss_hrs, "hours lost to stoppages"), kpi(k.run_hrs, "recorded run hours")),
+      el("div", { class: "grid2" }, panel("Cases by month", o.by_month), panel("Cases by plant", o.by_plant)),
+      panel("Stoppage hours by cause", o.loss_by_cause),
+      el("p", { class: "hint", text: `Quantity is missing for ${o.meta.cases_missing_pct}% of records, so case totals exclude them. These numbers come straight from the data, with no model involved.` }));
+  } catch (e) {
+    $("ov-body").textContent = "Could not load the overview.";
+  }
+}
+</script>
+</body>
+</html>
